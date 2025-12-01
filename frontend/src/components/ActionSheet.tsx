@@ -1,159 +1,154 @@
 import {
     Sheet,
-    SheetClose,
     SheetContent,
     SheetDescription,
     SheetFooter,
     SheetHeader,
     SheetTitle,
-    SheetTrigger,
-} from "@/components/ui/sheet"
-import { Button } from "./ui/button"
-import type { NodeKind } from "./CreateWorkflow"
+} from "@/components/ui/sheet";
+import { Button } from "./ui/button";
 import {
     Select,
     SelectGroup,
-    SelectLabel,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select"
-import { useState } from "react";
-import type { NodeMetadata } from "./CreateWorkflow";
+} from "@/components/ui/select";
 
-const AVAILABLE_TRIGGERS = [
-    {
-        id: "timer-trigger",
-        title: "Timer Trigger",
-        description: "Triggers the node every 5 mins"
-    },
-    {
-        id: "price-trigger",
-        title: "Price Trigger",
-        description: "Triggers when price fluctuates"
-    }
+import { useState } from "react";
+import type { ActionKind } from "./CreateWorkflow";
+import type { TradingMetadata } from "@/nodes/actions/Lighter";
+import { AVAILABLE_ASSETS } from "./TriggerSheet";
+
+const AVAILABLE_ACTIONS: { id: ActionKind; title: string; desc: string }[] = [
+    { id: "lighter", title: "Lighter", desc: "Trade on Lighter" },
+    { id: "backpack", title: "Backpack", desc: "Trade on Backpack" },
+    { id: "hyperliquid", title: "Hyperliquid", desc: "Trade on Hyperliquid" }
 ];
 
-const DEFAULT_METADATA: Record<NodeKind, NodeMetadata> = {
-    "timer-trigger": { time: 3600 },
-    "price-trigger": { asset: "BTC", price: 1000 },
-    hyperliquid: {},
-    backpack: {},
-    lighter: {},
+const DEFAULT_METADATA: Record<ActionKind, TradingMetadata> = {
+    lighter: { type: "SHORT", quantity: 0, asset: [] },
+    backpack: { type: "SHORT", quantity: 0, asset: [] },
+    hyperliquid: { type: "SHORT", quantity: 0, asset: [] }
 };
 
-const ActionSheet = ({
+export default function ActionSheet({
     onSelect,
 }: {
-    onSelect: (kind: NodeKind, metadata: NodeMetadata) => void;
-}) => {
-    const [selectedTrigger, setSelectedTrigger] = useState<NodeKind>(
-        AVAILABLE_TRIGGERS[0].id as NodeKind
-    );
-
-    const [metadata, setMetadata] = useState<NodeMetadata>(
-        DEFAULT_METADATA["timer-trigger"]
+    onSelect: (kind: ActionKind, metadata: TradingMetadata) => void;
+}) {
+    const [selectedAction, setSelectedAction] = useState<ActionKind>("lighter");
+    const [metadata, setMetadata] = useState<TradingMetadata>(
+        structuredClone(DEFAULT_METADATA["lighter"])
     );
 
     return (
         <Sheet open={true}>
             <SheetContent>
                 <SheetHeader>
-                    <SheetTitle>Select trigger</SheetTitle>
-                    <SheetDescription>
-                        Select your desired trigger type
-                    </SheetDescription>
+                    <SheetTitle>Select Action</SheetTitle>
+                    <SheetDescription>Configure your action node</SheetDescription>
                 </SheetHeader>
 
-                {/* Trigger Select */}
+                {/* ACTION TYPE SELECT */}
+                <label>Action</label>
                 <Select
-                    value={selectedTrigger}
+                    value={selectedAction}
                     onValueChange={(value) => {
-                        setSelectedTrigger(value as NodeKind);
-                        setMetadata(DEFAULT_METADATA[value as NodeKind]);
+                        const action = value as ActionKind;
+                        setSelectedAction(action);
+                        const cloned = JSON.parse(JSON.stringify(DEFAULT_METADATA[action]));
+                        setMetadata(cloned);
                     }}
                 >
-                    <SelectTrigger className="w-full justify-center">
-                        <SelectValue placeholder="Select trigger" />
+                    <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select Action" />
                     </SelectTrigger>
+
                     <SelectContent>
                         <SelectGroup>
-                            {AVAILABLE_TRIGGERS.map(({ id, title, description }) => (
-                                <div key={id}>
-                                    <SelectItem value={id}>{title}</SelectItem>
-                                    <SelectLabel>{description}</SelectLabel>
-                                </div>
+                            {AVAILABLE_ACTIONS.map((a) => (
+                                <SelectItem key={a.id} value={a.id}>
+                                    {a.title}
+                                </SelectItem>
                             ))}
                         </SelectGroup>
                     </SelectContent>
                 </Select>
 
-                {selectedTrigger === "timer-trigger" && (
-                    <div className="mt-4">
-                        <label>Time (seconds)</label>
+                <div className="mt-4 space-y-4">
+
+                    {/* ORDER TYPE */}
+                    <div>
+                        <label>Order Type</label>
+                        <Select
+                            value={metadata.type}
+                            onValueChange={(value) =>
+                                setMetadata({ ...metadata, type: value as "LONG" | "SHORT" })
+                            }
+                        >
+                            <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Select type" />
+                            </SelectTrigger>
+
+                            <SelectContent>
+                                <SelectGroup>
+                                    <SelectItem value="SHORT">SHORT</SelectItem>
+                                    <SelectItem value="LONG">LONG</SelectItem>
+                                </SelectGroup>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    {/* QUANTITY */}
+                    <div>
+                        <label>Quantity</label>
                         <input
                             className="border p-2 w-full"
                             type="number"
-                            value={metadata.time}
+                            value={metadata.quantity}
                             onChange={(e) =>
-                                setMetadata({ ...metadata, time: Number(e.target.value) })
+                                setMetadata({ ...metadata, quantity: Number(e.target.value) })
                             }
                         />
                     </div>
-                )}
 
-                {selectedTrigger === "price-trigger" && (
-                    <div className="mt-4 space-y-3">
-                        <div>
-                            <label>Asset</label>
+                    {/* ASSET */}
+                    <div>
+                        <label>Asset</label>
+                        <Select
+                            value={metadata.asset[0] ?? ""}
+                            onValueChange={(value) =>
+                                setMetadata({ ...metadata, asset: [value] })
+                            }
+                        >
+                            <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Select asset" />
+                            </SelectTrigger>
 
-                            <Select
-                                value={metadata.asset}
-                                onValueChange={(value) =>
-                                    setMetadata({ ...metadata, asset: value })
-                                }
-                            >
-                                <SelectTrigger className="w-full">
-                                    <SelectValue placeholder="Select asset" />
-                                </SelectTrigger>
-
-                                <SelectContent>
-                                    <SelectGroup>
-                                        <SelectItem value="SOL">SOL</SelectItem>
-                                        <SelectItem value="ETH">ETH</SelectItem>
-                                        <SelectItem value="BTC">BTC</SelectItem>
-                                    </SelectGroup>
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        <div>
-                            <label>Price</label>
-                            <input
-                                className="border p-2 w-full"
-                                type="number"
-                                value={metadata.price}
-                                onChange={(e) =>
-                                    setMetadata({ ...metadata, price: Number(e.target.value) })
-                                }
-                            />
-                        </div>
+                            <SelectContent>
+                                <SelectGroup>
+                                    {AVAILABLE_ASSETS.map((asset) => (
+                                        <SelectItem key={asset} value={asset}>
+                                            {asset}
+                                        </SelectItem>
+                                    ))}
+                                </SelectGroup>
+                            </SelectContent>
+                        </Select>
                     </div>
-                )}
 
-                <SheetFooter className="pt-4">
+                </div>
+
+                <SheetFooter className="pt-6">
                     <Button
-                        onClick={() => onSelect(selectedTrigger, metadata)}
-                        type="submit"
+                        onClick={() => onSelect(selectedAction, metadata)}
                     >
-                        Create Trigger
+                        Create Action
                     </Button>
                 </SheetFooter>
             </SheetContent>
         </Sheet>
     );
-};
-
-
-export default ActionSheet 
+}

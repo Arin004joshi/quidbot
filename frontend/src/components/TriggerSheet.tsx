@@ -35,9 +35,11 @@ const AVAILABLE_TRIGGERS = [
     }
 ];
 
+export const AVAILABLE_ASSETS = ['SOL', 'BTC', 'ETH']
+
 const DEFAULT_METADATA: Record<NodeKind, NodeMetadata> = {
     "timer-trigger": { time: 3600 },
-    "price-trigger": { asset: "BTC", price: 1000 },
+    "price-trigger": { asset: AVAILABLE_ASSETS[0], price: 0 },
     hyperliquid: {},
     backpack: {},
     lighter: {},
@@ -120,9 +122,11 @@ const TriggerSheet = ({
 
                                 <SelectContent>
                                     <SelectGroup>
-                                        <SelectItem value="SOL">SOL</SelectItem>
-                                        <SelectItem value="ETH">ETH</SelectItem>
-                                        <SelectItem value="BTC">BTC</SelectItem>
+                                        {AVAILABLE_ASSETS.map(asset => (
+                                            <SelectItem key={asset} value={asset}>
+                                                {asset}
+                                            </SelectItem>
+                                        ))}
                                     </SelectGroup>
                                 </SelectContent>
                             </Select>

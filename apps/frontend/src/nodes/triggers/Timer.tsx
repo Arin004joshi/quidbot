@@ -1,6 +1,5 @@
 import { Handle, Position } from '@xyflow/react'
-
-
+import type { TimerNodeMetadata } from 'common/types'
 
 const Timer = ({ data, isConnectable }: {
     data: {
@@ -10,7 +9,7 @@ const Timer = ({ data, isConnectable }: {
 }) => {
     // Display time in hours for readability
     const timeInHours = (data.metadata.time / 3600).toFixed(2);
-    
+
     return (
         <div className='p-4 border-2 border-primary bg-primary/10 rounded-xl shadow-lg w-48'>
             <div className="font-semibold text-lg text-primary mb-1">

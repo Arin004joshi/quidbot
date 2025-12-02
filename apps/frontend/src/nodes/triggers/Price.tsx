@@ -1,6 +1,5 @@
 import { Handle, Position } from "@xyflow/react"
-
-
+import type { PriceNodeMetadata } from "common/types"
 
 const Price = ({ data, isConnectable }: {
     data: {

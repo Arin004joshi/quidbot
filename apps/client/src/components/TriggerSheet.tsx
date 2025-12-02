@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select"
 import { useState } from "react";
 import type { NodeMetadata } from "./CreateWorkflow";
+import { AVAILABLE_ASSETS } from "common/types";
 
 const AVAILABLE_TRIGGERS = [
     {
@@ -35,7 +36,6 @@ const AVAILABLE_TRIGGERS = [
     }
 ];
 
-export const AVAILABLE_ASSETS = ['SOL', 'BTC', 'ETH']
 
 const DEFAULT_METADATA: Record<NodeKind, NodeMetadata> = {
     "timer-trigger": { time: 3600 },

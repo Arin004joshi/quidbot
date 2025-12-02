@@ -1,9 +1,6 @@
 import { Handle, Position } from "@xyflow/react"
 
-export type PriceNodeMetadata = {
-    asset: string,
-    price: number,
-}
+
 
 const Price = ({ data, isConnectable }: {
     data: {

@@ -1,12 +1,5 @@
-import { AVAILABLE_ASSETS } from "@/components/TriggerSheet"
 import { Handle, Position } from "@xyflow/react"
-
-export type TradingMetadata = {
-    type: 'LONG' | 'SHORT',
-    quantity: number,
-    asset: typeof AVAILABLE_ASSETS
-}
-
+import type { TradingMetadata } from "common/types"
 
 const Hyperliquid = ({ data, isConnectable, ...rest }: {
     data: {

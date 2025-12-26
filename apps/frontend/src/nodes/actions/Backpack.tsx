@@ -8,7 +8,7 @@ const Backpack = ({ data, isConnectable, ...rest }: {
     isConnectable: boolean
 }) => {
     return (
-        <div className="p-3 border border-border bg-card rounded-xl shadow-md w-48" {...rest}>
+        <div className="p-4 border-2 border-primary bg-primary/10 rounded-xl shadow-lg w-48" {...rest}>
             <div className="text-sm font-bold bg-secondary text-secondary-foreground p-1 rounded-t-lg -mx-3 -mt-3 mb-2 text-center">
                 BACKPACK (Action)
             </div>

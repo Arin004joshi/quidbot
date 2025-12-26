@@ -1,12 +1,5 @@
-import { AVAILABLE_ASSETS } from "@/components/TriggerSheet"
 import { Handle, Position } from "@xyflow/react"
-
-export type TradingMetadata = {
-    type: 'LONG' | 'SHORT',
-    quantity: number,
-    asset: typeof AVAILABLE_ASSETS
-}
-
+import type { TradingMetadata } from "common/types"
 
 const Lighter = ({ data, isConnectable, ...rest }: {
     data: {
@@ -15,9 +8,9 @@ const Lighter = ({ data, isConnectable, ...rest }: {
     isConnectable: boolean
 }) => {
     return (
-        <div className="p-3 border border-border bg-card rounded-xl shadow-md w-48" {...rest}>
+        <div className="p-4 border-2 border-primary bg-primary/10 rounded-xl shadow-lg w-48" {...rest}>
             <div className="text-sm font-bold bg-secondary text-secondary-foreground p-1 rounded-t-lg -mx-3 -mt-3 mb-2 text-center">
-                Lighter (Action)
+                BACKPACK (Action)
             </div>
             <div className="flex justify-between items-center text-md font-semibold mb-1">
                 <span className={data.metadata.type === 'LONG' ? 'text-green-500' : 'text-destructive'}>

@@ -18,8 +18,8 @@ import {
 
 import { useState } from "react";
 import type { ActionKind } from "./CreateWorkflow";
-import type { TradingMetadata } from "@/nodes/actions/Lighter";
 import { AVAILABLE_ASSETS } from "common/types";
+import type { TradingMetadata } from "common/types";
 
 const AVAILABLE_ACTIONS: { id: ActionKind; title: string; desc: string }[] = [
     { id: "lighter", title: "Lighter", desc: "Trade on Lighter" },

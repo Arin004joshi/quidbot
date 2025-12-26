@@ -8,7 +8,7 @@ const Price = ({ data, isConnectable }: {
     isConnectable: boolean
 }) => {
     return (
-        <div className="p-4 border-2 border-accent bg-accent/10 rounded-xl shadow-lg w-48">
+        <div className="p-4 border-2 border-primary bg-primary/10 rounded-xl shadow-lg w-48">
             <div className="font-semibold text-lg text-primary mb-1">
                 Price Trigger
             </div>

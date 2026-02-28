@@ -23,6 +23,7 @@ import Backpack from "@/nodes/actions/Backpack";
 import Lighter from "@/nodes/actions/Lighter";
 import Hyperliquid from "@/nodes/actions/Hyperliquid";
 import type { Node as RFNode } from "@xyflow/react";
+import Navbar from "./Navbar";
 
 export type NodeKind =
     | "timer-trigger"
@@ -119,105 +120,110 @@ const CreateWorkflow = () => {
     );
 
     return (
-        <div className="relative w-full h-[calc(100vh-80px)]">
+        <div className="flex flex-col h-screen">
 
-            {/* Add Trigger Button */}
-            <button
-                onClick={() => setShowTriggerSheet(true)}
-                className="absolute top-6 left-6 z-20 bg-blue-600 hover:bg-blue-500 transition-all px-4 py-2 rounded-xl text-sm font-semibold shadow-lg shadow-blue-600/20"
-            >
-                + Add Trigger
-            </button>
+            <Navbar showActions={false} />
 
-            {/* Empty State */}
-            {!nodes.length && (
-                <div className="absolute inset-0 flex items-center justify-center text-center pointer-events-none">
-                    <div>
-                        <h2 className="text-xl font-bold text-slate-300 mb-2">
-                            Start Building Your Workflow
-                        </h2>
-                        <p className="text-slate-500 text-sm">
-                            Add a trigger to begin designing your trading automation.
-                        </p>
+            <div className="relative flex-1">
+
+                {/* Add Trigger Button */}
+                <button
+                    onClick={() => setShowTriggerSheet(true)}
+                    className="absolute top-6 left-6 z-20 bg-blue-600 hover:bg-blue-500 transition-all px-4 py-2 rounded-xl text-sm font-semibold shadow-lg shadow-blue-600/20"
+                >
+                    + Add Trigger
+                </button>
+
+                {/* Empty State */}
+                {!nodes.length && (
+                    <div className="absolute inset-0 flex items-center justify-center text-center pointer-events-none">
+                        <div>
+                            <h2 className="text-xl font-bold text-slate-300 mb-2">
+                                Start Building Your Workflow
+                            </h2>
+                            <p className="text-slate-500 text-sm">
+                                Add a trigger to begin designing your trading automation.
+                            </p>
+                        </div>
                     </div>
-                </div>
-            )}
+                )}
 
-            {/* Trigger Sheet */}
-            {showTriggerSheet && (
-                <TriggerSheet
-                    onSelect={(kind, metadata) => {
-                        setNodes((prev) => [
-                            ...prev,
-                            {
-                                id: crypto.randomUUID(),
-                                type: kind, // MUST match nodeTypes key
-                                position: { x: 100, y: 100 },
-                                data: {
-                                    type: "trigger",
-                                    kind,
-                                    metadata,
-                                    label: kind,
-                                },
-                            },
-                        ]);
-                        setShowTriggerSheet(false);
-                    }}
-                />
-            )}
-
-            {/* Action Sheet */}
-            {actionSheetData.open &&
-                actionSheetData.position &&
-                actionSheetData.parentNode && (
-                    <ActionSheet
-                        onSelect={(actionKind: ActionKind, metadata) => {
-                            const id = crypto.randomUUID();
-
+                {/* Sheets */}
+                {showTriggerSheet && (
+                    <TriggerSheet
+                        onSelect={(kind, metadata) => {
                             setNodes((prev) => [
                                 ...prev,
                                 {
-                                    id,
-                                    type: actionKind,
-                                    position: actionSheetData.position!,
+                                    id: crypto.randomUUID(),
+                                    type: kind,
+                                    position: { x: 100, y: 100 },
                                     data: {
-                                        type: "action",
-                                        kind: actionKind,
+                                        type: "trigger",
+                                        kind,
                                         metadata,
-                                        label: actionKind,
+                                        label: kind,
                                     },
                                 },
                             ]);
-
-                            setEdges((prev) => [
-                                ...prev,
-                                {
-                                    id: `${actionSheetData.parentNode}-${id}`,
-                                    source: actionSheetData.parentNode!,
-                                    target: id,
-                                },
-                            ]);
-
-                            setActionSheetData({
-                                open: false,
-                                position: null,
-                                parentNode: null,
-                            });
+                            setShowTriggerSheet(false);
                         }}
                     />
                 )}
+                {actionSheetData.open &&
+                    actionSheetData.position &&
+                    actionSheetData.parentNode && (
+                        <ActionSheet
+                            onSelect={(actionKind: ActionKind, metadata) => {
+                                const id = crypto.randomUUID();
 
-            <ReactFlow
-                nodeTypes={nodeTypes}
-                nodes={nodes}
-                edges={edges}
-                onNodesChange={onNodesChange}
-                onEdgesChange={onEdgesChange}
-                onConnect={onConnect}
-                onConnectStart={onConnectStart}
-                onConnectEnd={onConnectEnd}
-                fitView
-            />
+                                setNodes((prev) => [
+                                    ...prev,
+                                    {
+                                        id,
+                                        type: actionKind,
+                                        position: actionSheetData.position!,
+                                        data: {
+                                            type: "action",
+                                            kind: actionKind,
+                                            metadata,
+                                            label: actionKind,
+                                        },
+                                    },
+                                ]);
+
+                                setEdges((prev) => [
+                                    ...prev,
+                                    {
+                                        id: `${actionSheetData.parentNode}-${id}`,
+                                        source: actionSheetData.parentNode!,
+                                        target: id,
+                                    },
+                                ]);
+
+                                setActionSheetData({
+                                    open: false,
+                                    position: null,
+                                    parentNode: null,
+                                });
+                            }}
+                        />
+                    )}
+
+                {/* CRITICAL: ReactFlow must fill parent */}
+                <ReactFlow
+                    nodeTypes={nodeTypes}
+                    nodes={nodes}
+                    edges={edges}
+                    onNodesChange={onNodesChange}
+                    onEdgesChange={onEdgesChange}
+                    onConnect={onConnect}
+                    onConnectStart={onConnectStart}
+                    onConnectEnd={onConnectEnd}
+                    fitView
+                    style={{ width: "100%", height: "100%" }}
+                />
+            </div>
         </div>
     );
 };

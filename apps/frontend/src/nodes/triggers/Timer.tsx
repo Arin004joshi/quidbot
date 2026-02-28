@@ -1,25 +1,53 @@
-import { Handle, Position } from '@xyflow/react'
-import type { TimerNodeMetadata } from 'common/types'
+import { Handle, Position } from "@xyflow/react";
+import type { TimerNodeMetadata } from "common/types";
 
-const Timer = ({ data, isConnectable }: {
+const Timer = ({
+    data,
+    isConnectable,
+}: {
     data: {
-        metadata: TimerNodeMetadata
-    },
-    isConnectable: boolean
+        metadata: TimerNodeMetadata;
+    };
+    isConnectable: boolean;
 }) => {
-    // Display time in hours for readability
     const timeInHours = (data.metadata.time / 3600).toFixed(2);
 
     return (
-        <div className='p-4 border-2 border-primary bg-primary/10 rounded-xl shadow-lg w-48'>
-            <div className="font-semibold text-lg text-primary mb-1">
+        <div className="relative w-56 bg-[#161922] border border-slate-800 rounded-2xl p-4 shadow-xl backdrop-blur-sm transition-all hover:border-emerald-500/40 hover:shadow-emerald-500/10 hover:scale-[1.02] duration-300">
+
+            {/* Subtle Accent Glow */}
+            <div className="absolute inset-0 rounded-2xl bg-emerald-500/5 opacity-0 hover:opacity-100 transition-opacity pointer-events-none" />
+
+            {/* Header */}
+            <div className="flex items-center justify-between mb-2">
+                <div className="text-xs font-black uppercase tracking-wider text-emerald-500">
+                    Trigger
+                </div>
+            </div>
+
+            {/* Title */}
+            <div className="font-bold text-slate-100 text-base mb-1">
                 Schedule Trigger
             </div>
-            <div className='text-sm text-foreground/80'>
-                Every <span className="font-bold text-primary">{timeInHours}</span> hours
+
+            {/* Description */}
+            <div className="text-sm text-slate-400 leading-snug">
+                Every{" "}
+                <span className="font-semibold text-emerald-400">
+                    {timeInHours}
+                </span>{" "}
+                hours
             </div>
-            <Handle type='source' position={Position.Right} className='bg-primary' />
+
+            {/* Connection Handle */}
+            <Handle
+                type="source"
+                position={Position.Right}
+                isConnectable={isConnectable}
+                className="!bg-emerald-500 !w-3 !h-3 !border-2 !border-[#0d0f14]"
+            />
         </div>
-    )
-}
-export default Timer
+    );
+};
+
+export default Timer;

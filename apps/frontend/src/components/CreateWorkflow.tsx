@@ -1,29 +1,28 @@
 import { useState, useCallback } from "react";
+import axios from "axios";
 import {
     ReactFlow,
     applyNodeChanges,
     applyEdgeChanges,
     addEdge,
-    type Node,
     type Edge,
     type NodeChange,
     type EdgeChange,
     useReactFlow,
+    type Node as RFNode,
 } from "@xyflow/react";
 
 import "@xyflow/react/dist/style.css";
 
 import TriggerSheet from "./TriggerSheet";
 import ActionSheet from "./ActionSheet";
+import Navbar from "./Navbar";
 
 import Timer from "@/nodes/triggers/Timer";
 import Price from "@/nodes/triggers/Price";
-
 import Backpack from "@/nodes/actions/Backpack";
 import Lighter from "@/nodes/actions/Lighter";
 import Hyperliquid from "@/nodes/actions/Hyperliquid";
-import type { Node as RFNode } from "@xyflow/react";
-import Navbar from "./Navbar";
 
 export type NodeKind =
     | "timer-trigger"
@@ -36,7 +35,6 @@ export type ActionKind = "hyperliquid" | "backpack" | "lighter";
 
 export type NodeMetadata = any;
 
-/* ✅ Proper Node Type */
 type WorkflowNode = RFNode<{
     type: "trigger" | "action";
     kind: NodeKind;
@@ -55,11 +53,11 @@ const nodeTypes = {
 const CreateWorkflow = () => {
     const [nodes, setNodes] = useState<WorkflowNode[]>([]);
     const [edges, setEdges] = useState<Edge[]>([]);
+    const [selectedNode, setSelectedNode] = useState<WorkflowNode | null>(null);
 
     const reactFlowInstance = useReactFlow();
 
     const [showTriggerSheet, setShowTriggerSheet] = useState(false);
-
     const [actionSheetData, setActionSheetData] = useState<{
         open: boolean;
         position: { x: number; y: number } | null;
@@ -69,6 +67,45 @@ const CreateWorkflow = () => {
         position: null,
         parentNode: null,
     });
+
+    /* ---------------- DELETE NODE ---------------- */
+
+    const deleteNode = (nodeId: string) => {
+        setNodes(prev => prev.filter(n => n.id !== nodeId));
+        setEdges(prev =>
+            prev.filter(e => e.source !== nodeId && e.target !== nodeId)
+        );
+
+        setSelectedNode(null);
+        setShowTriggerSheet(false);
+        setActionSheetData({ open: false, position: null, parentNode: null });
+    };
+
+    /* ---------------- EXECUTE WORKFLOW ---------------- */
+
+    const executeWorkflow = async () => {
+        try {
+            const payload = {
+                nodes,
+                edges,
+            };
+
+            console.log("Sending Workflow:", payload);
+
+            const { data } = await axios.post(
+                "http://localhost:3001/api/workflow/execute",
+                payload
+            );
+
+            console.log("Execution Result:", data);
+            alert("Workflow Executed Successfully ✅");
+        } catch (err) {
+            console.error("Execution Failed:", err);
+            alert("Execution Failed ❌");
+        }
+    };
+
+    /* ---------------- REACTFLOW HANDLERS ---------------- */
 
     const onNodesChange = useCallback(
         (changes: NodeChange<WorkflowNode>[]) =>
@@ -86,6 +123,14 @@ const CreateWorkflow = () => {
         (params: any) => setEdges((eds) => addEdge(params, eds)),
         []
     );
+
+    const onNodeClick = (_: any, node: WorkflowNode) => {
+        setSelectedNode(node);
+
+        if (node.data.type === "trigger") {
+            setShowTriggerSheet(true);
+        }
+    };
 
     const [dragSource, setDragSource] = useState<string | null>(null);
 
@@ -108,8 +153,6 @@ const CreateWorkflow = () => {
                 y: event.clientY,
             });
 
-            if (isNaN(pos.x) || isNaN(pos.y)) return;
-
             setActionSheetData({
                 open: true,
                 position: pos,
@@ -126,36 +169,32 @@ const CreateWorkflow = () => {
 
             <div className="relative flex-1">
 
-                {/* Add Trigger Button */}
+                {/* Top-left: Add Trigger */}
                 <button
                     onClick={() => setShowTriggerSheet(true)}
-                    className="absolute top-6 left-6 z-20 bg-blue-600 hover:bg-blue-500 transition-all px-4 py-2 rounded-xl text-sm font-semibold shadow-lg shadow-blue-600/20"
+                    className="absolute top-6 left-6 z-20 bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-xl text-sm font-semibold shadow-lg shadow-blue-600/20"
                 >
                     + Add Trigger
                 </button>
 
-                {/* Empty State */}
-                {!nodes.length && (
-                    <div className="absolute inset-0 flex items-center justify-center text-center pointer-events-none">
-                        <div>
-                            <h2 className="text-xl font-bold text-slate-300 mb-2">
-                                Start Building Your Workflow
-                            </h2>
-                            <p className="text-slate-500 text-sm">
-                                Add a trigger to begin designing your trading automation.
-                            </p>
-                        </div>
-                    </div>
-                )}
+                {/* Top-right: Execute Workflow */}
+                <button
+                    onClick={executeWorkflow}
+                    className="absolute top-6 right-6 z-20 bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-xl text-sm font-semibold shadow-lg shadow-blue-600/20 uppercase tracking-widest"
+                >
+                    ▶ Deploy Workflow
+                </button>
 
-                {/* Sheets */}
+                {/* Trigger Sheet */}
                 {showTriggerSheet && (
                     <TriggerSheet
                         onSelect={(kind, metadata) => {
-                            setNodes((prev) => [
+                            const id = crypto.randomUUID();
+
+                            setNodes(prev => [
                                 ...prev,
                                 {
-                                    id: crypto.randomUUID(),
+                                    id,
                                     type: kind,
                                     position: { x: 100, y: 100 },
                                     data: {
@@ -166,18 +205,24 @@ const CreateWorkflow = () => {
                                     },
                                 },
                             ]);
+
                             setShowTriggerSheet(false);
                         }}
+                        onDelete={() =>
+                            selectedNode && deleteNode(selectedNode.id)
+                        }
                     />
                 )}
+
+                {/* Action Sheet */}
                 {actionSheetData.open &&
                     actionSheetData.position &&
                     actionSheetData.parentNode && (
                         <ActionSheet
-                            onSelect={(actionKind: ActionKind, metadata) => {
+                            onSelect={(actionKind, metadata) => {
                                 const id = crypto.randomUUID();
 
-                                setNodes((prev) => [
+                                setNodes(prev => [
                                     ...prev,
                                     {
                                         id,
@@ -192,7 +237,7 @@ const CreateWorkflow = () => {
                                     },
                                 ]);
 
-                                setEdges((prev) => [
+                                setEdges(prev => [
                                     ...prev,
                                     {
                                         id: `${actionSheetData.parentNode}-${id}`,
@@ -207,10 +252,12 @@ const CreateWorkflow = () => {
                                     parentNode: null,
                                 });
                             }}
+                            onDelete={() =>
+                                selectedNode && deleteNode(selectedNode.id)
+                            }
                         />
                     )}
 
-                {/* CRITICAL: ReactFlow must fill parent */}
                 <ReactFlow
                     nodeTypes={nodeTypes}
                     nodes={nodes}
@@ -220,8 +267,8 @@ const CreateWorkflow = () => {
                     onConnect={onConnect}
                     onConnectStart={onConnectStart}
                     onConnectEnd={onConnectEnd}
+                    onNodeClick={onNodeClick}
                     fitView
-                    style={{ width: "100%", height: "100%" }}
                 />
             </div>
         </div>
